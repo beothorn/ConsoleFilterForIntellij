@@ -1,13 +1,8 @@
 package consolefilterforintellij;
 
-import com.intellij.openapi.components.ComponentManager;
-import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
-import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -16,13 +11,11 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.function.Consumer;
 
-public class FilteredConsoleOutput implements ToolWindowFactory, Consumer<String> {
+public class FilteredConsoleOutput implements ToolWindowFactory {
 
     private JTextArea filteredConsoleOutput;
+    private JLabel currentFilter;
 
     @Override
     public void createToolWindowContent(
@@ -37,34 +30,59 @@ public class FilteredConsoleOutput implements ToolWindowFactory, Consumer<String
         JLabel headerLabel = new JLabel("Filter:", JLabel.LEFT);
         header.add(headerLabel, BorderLayout.WEST);
 
-        JTextField filter = new JTextField();
+        JTextField filter = new JTextField(".*");
         header.add(filter, BorderLayout.CENTER);
 
+        JPanel buttons = new JPanel(new BorderLayout());
+
         JButton applyFilter = new JButton("Apply");
-        header.add(applyFilter, BorderLayout.EAST);
+        buttons.add(applyFilter, BorderLayout.WEST);
+
+        JButton clearLog = new JButton("Clear Log");
+        buttons.add(clearLog, BorderLayout.EAST);
+
+        header.add(buttons, BorderLayout.EAST);
 
         panel.add(header, BorderLayout.NORTH);
+
+        JPanel output = new JPanel(new BorderLayout());
+
+        JPanel currentFilterHeader = new JPanel(new BorderLayout());
+        currentFilter = new JLabel(".*", JLabel.LEFT);
+        currentFilterHeader.add(new JLabel("Next entries will be filtered with: ", JLabel.RIGHT), BorderLayout.WEST);
+        currentFilterHeader.add(currentFilter, BorderLayout.EAST);
+
+        output.add(currentFilterHeader, BorderLayout.NORTH);
 
         JBScrollPane scrollPane = new JBScrollPane(filteredConsoleOutput);
         scrollPane.setVerticalScrollBarPolicy(JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-        panel.add(scrollPane, BorderLayout.CENTER);
+        output.add(scrollPane, BorderLayout.CENTER);
+
+        panel.add(output, BorderLayout.CENTER);
 
         ContentFactory contentFactory = ContentFactory.getInstance();
         Content content = contentFactory.createContent(panel, "", false);
         ContentManager contentManager = toolWindow.getContentManager();
         contentManager.addContent(content);
         ConsoleOutputStore consoleOutputStore = project.getService(ConsoleOutputStore.class);
-        consoleOutputStore.addListener(this);
-        applyFilter.addActionListener(actionEvent -> consoleOutputStore.setFilter(filter.getText()));
+        consoleOutputStore.setFilteredConsoleOutput(this);
+        applyFilter.addActionListener(actionEvent -> {
+            String newFilter = filter.getText();
+            currentFilter.setText(newFilter);
+            consoleOutputStore.setFilter(newFilter);
+        });
+        clearLog.addActionListener(actionEvent -> consoleOutputStore.clearLog());
     }
 
-    @Override
-    public void accept(final String newText) {
+    public void log(final String newText) {
         if (filteredConsoleOutput != null) {
-            filteredConsoleOutput.append("\n");
             filteredConsoleOutput.append(newText);
         }
+    }
+
+    public void clearLog() {
+        filteredConsoleOutput.setText("");
     }
 }
