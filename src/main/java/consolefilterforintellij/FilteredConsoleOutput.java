@@ -8,29 +8,30 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
 import org.jetbrains.annotations.NotNull;
-
 import javax.swing.*;
 import java.awt.*;
 
 public class FilteredConsoleOutput implements ToolWindowFactory {
 
-    private JTextArea filteredConsoleOutput;
-    private JLabel currentFilter;
+    private
+    JTextArea filteredConsoleOutput;
 
     @Override
     public void createToolWindowContent(
-        @NotNull Project project,
-        ToolWindow toolWindow
+            @NotNull Project project,
+            ToolWindow toolWindow
     ) {
         JPanel panel = new JPanel(new BorderLayout());
+        JLabel currentFilter;
+
         filteredConsoleOutput = new JTextArea();
         filteredConsoleOutput.setEditable(false);
 
         JPanel header = new JPanel(new BorderLayout());
-        JLabel headerLabel = new JLabel("Filter:", JLabel.LEFT);
+        JLabel headerLabel = new JLabel("Filter:", SwingConstants.LEFT);
         header.add(headerLabel, BorderLayout.WEST);
 
-        JTextField filter = new JTextField(".*");
+        JTextField filter = new JTextField();
         header.add(filter, BorderLayout.CENTER);
 
         JPanel buttons = new JPanel(new BorderLayout());
@@ -48,15 +49,15 @@ public class FilteredConsoleOutput implements ToolWindowFactory {
         JPanel output = new JPanel(new BorderLayout());
 
         JPanel currentFilterHeader = new JPanel(new BorderLayout());
-        currentFilter = new JLabel(".*", JLabel.LEFT);
-        currentFilterHeader.add(new JLabel("Next entries will be filtered with: ", JLabel.RIGHT), BorderLayout.WEST);
+        currentFilter = new JLabel(ConsoleOutputStore.DEFAULT_FILTER, SwingConstants.LEFT);
+        currentFilterHeader.add(new JLabel("Applied filter: ", SwingConstants.RIGHT), BorderLayout.WEST);
         currentFilterHeader.add(currentFilter, BorderLayout.EAST);
 
         output.add(currentFilterHeader, BorderLayout.NORTH);
 
         JBScrollPane scrollPane = new JBScrollPane(filteredConsoleOutput);
-        scrollPane.setVerticalScrollBarPolicy(JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         output.add(scrollPane, BorderLayout.CENTER);
 

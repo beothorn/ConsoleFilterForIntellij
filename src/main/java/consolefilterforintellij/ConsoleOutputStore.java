@@ -1,20 +1,20 @@
 package consolefilterforintellij;
 
 import com.intellij.openapi.components.Service;
-
+import com.jgoodies.common.base.Strings;
 import java.util.regex.Pattern;
 
 @Service
 public final class ConsoleOutputStore {
 
-    StringBuilder sb = new StringBuilder();
+    public static final String DEFAULT_FILTER = "";
 
     FilteredConsoleOutput filteredConsoleOutput;
 
-    private Pattern filterPattern = Pattern.compile(".*");
+    private Pattern filterPattern;
 
-    public void append(String s) {
-        sb.append(s);
+    public void onOutput(String s) {
+        if (filterPattern == null) return;
         if (filterPattern.matcher(s).find()) {
             filteredConsoleOutput.log(s);
         }
@@ -25,11 +25,14 @@ public final class ConsoleOutputStore {
     }
 
     public void setFilter(String filter) {
-        filterPattern = Pattern.compile(filter);
+        if (Strings.isBlank(filter)) {
+            filterPattern = null;
+        } else {
+            filterPattern = Pattern.compile(filter);
+        }
     }
 
     public void clearLog() {
-        sb = new StringBuilder();
         filteredConsoleOutput.clearLog();
     }
 

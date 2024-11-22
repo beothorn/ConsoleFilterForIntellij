@@ -14,31 +14,30 @@ public class StartupActivity implements com.intellij.openapi.startup.StartupActi
 
     @Override
     public void runActivity(@NotNull final Project project) {
-        System.out.println("StartupActivity CALLED!!");
         project
-            .getMessageBus()
-            .connect(project)
-            .subscribe(ExecutionManager.EXECUTION_TOPIC, new ExecutionListener() {
-            @Override
-            public void processStarted(
-                @NotNull String executorId,
-                @NotNull ExecutionEnvironment env,
-                @NotNull ProcessHandler handler
-            ) {
-                handler.addProcessListener(new ProcessAdapter() {
+                .getMessageBus()
+                .connect(project)
+                .subscribe(ExecutionManager.EXECUTION_TOPIC, new ExecutionListener() {
                     @Override
-                    public void onTextAvailable(
-                        @NotNull ProcessEvent event,
-                        @NotNull Key outputType
+                    public void processStarted(
+                            @NotNull String executorId,
+                            @NotNull ExecutionEnvironment env,
+                            @NotNull ProcessHandler handler
                     ) {
-                        ConsoleOutputStore consoleOutputStore = project.getService(ConsoleOutputStore.class);
-                        if (consoleOutputStore != null) {
-                            String text = event.getText();
-                            if(!text.isEmpty()) consoleOutputStore.append(text);
-                        }
+                        handler.addProcessListener(new ProcessAdapter() {
+                            @Override
+                            public void onTextAvailable(
+                                    @NotNull ProcessEvent event,
+                                    @NotNull Key outputType
+                            ) {
+                                ConsoleOutputStore consoleOutputStore = project.getService(ConsoleOutputStore.class);
+                                if (consoleOutputStore != null) {
+                                    String text = event.getText();
+                                    if (!text.isEmpty()) consoleOutputStore.onOutput(text);
+                                }
+                            }
+                        });
                     }
                 });
-            }
-        });
     }
 }
