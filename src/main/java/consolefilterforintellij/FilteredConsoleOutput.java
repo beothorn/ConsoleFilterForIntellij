@@ -1,9 +1,13 @@
 package consolefilterforintellij;
 
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
@@ -13,19 +17,25 @@ import java.awt.*;
 
 public class FilteredConsoleOutput implements ToolWindowFactory {
 
-    private
-    JTextArea filteredConsoleOutput;
+    private Editor filteredConsoleOutput;
+
+    private Project project;
 
     @Override
     public void createToolWindowContent(
             @NotNull Project project,
             ToolWindow toolWindow
     ) {
+        this.project = project;
+
         JPanel panel = new JPanel(new BorderLayout());
         JLabel currentFilter;
 
-        filteredConsoleOutput = new JTextArea();
-        filteredConsoleOutput.setEditable(false);
+        EditorFactory editorFactory = EditorFactory.getInstance();
+        Document document = editorFactory.createDocument("");
+        filteredConsoleOutput = editorFactory.createEditor(document, project);
+        // Make the editor read-only
+        ((EditorEx) filteredConsoleOutput).setViewer(true);
 
         JPanel header = new JPanel(new BorderLayout());
         JLabel headerLabel = new JLabel("Filter:", SwingConstants.LEFT);
@@ -55,14 +65,10 @@ public class FilteredConsoleOutput implements ToolWindowFactory {
 
         output.add(currentFilterHeader, BorderLayout.NORTH);
 
-        JBScrollPane scrollPane = new JBScrollPane(filteredConsoleOutput);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
-        output.add(scrollPane, BorderLayout.CENTER);
+        // Add the editor component
+        output.add(filteredConsoleOutput.getComponent(), BorderLayout.CENTER);
 
         panel.add(output, BorderLayout.CENTER);
-
         ContentFactory contentFactory = ContentFactory.getInstance();
         Content content = contentFactory.createContent(panel, "", false);
         ContentManager contentManager = toolWindow.getContentManager();
@@ -79,11 +85,18 @@ public class FilteredConsoleOutput implements ToolWindowFactory {
 
     public void log(final String newText) {
         if (filteredConsoleOutput != null) {
-            filteredConsoleOutput.append(newText);
+            WriteCommandAction.runWriteCommandAction(project, () -> {
+                Document document = filteredConsoleOutput.getDocument();
+                document.insertString(document.getTextLength(), newText);
+            });
         }
     }
 
     public void clearLog() {
-        filteredConsoleOutput.setText("");
+        if (filteredConsoleOutput != null) {
+            WriteCommandAction.runWriteCommandAction(project, () -> {
+                filteredConsoleOutput.getDocument().setText("");
+            });
+        }
     }
 }
