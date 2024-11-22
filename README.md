@@ -8,3 +8,7 @@ Check the releases for the plugin.
 [Download](https://github.com/beothorn/ConsoleFilterForIntellij/releases/download/2.0/consoleFilterForIntellij-2.0.jar)
 
 To install got to Plugins > Gear Icon > Install plugin from disk 
+
+To open:  
+
+double shift: Filtered console
