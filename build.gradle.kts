@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "br.com.isageek"
-version = "2.1-SNAPSHOT"
+version = "2.1"
 
 repositories {
     mavenCentral()
