@@ -5,7 +5,7 @@ The new entries are checked against the current regex, and if they match, the en
 Check the releases for the plugin.  
 ![screenshot](./screenshot.jpg)
 
-[Download](https://github.com/beothorn/ConsoleFilterForIntellij/releases/download/2.0/consoleFilterForIntellij-2.0.jar)
+[Download](https://github.com/beothorn/ConsoleFilterForIntellij/releases/download/2.1/consoleFilterForIntellij-2.1.jar)
 
 To install got to Plugins > Gear Icon > Install plugin from disk 
 
